@@ -1,0 +1,177 @@
+classDiagram
+    class User {
+        +id: UUID
+        +name: string
+        +email: string
+        +password?: string
+        +provider: AuthProvider
+        +plan: PlanType
+        +api_key?: string
+        +role: UserRole
+        +theme: ThemeType
+        +created_at: DateTime
+        +updated_at: DateTime
+        +trial_ends_at?: DateTime
+        +__init__(email: string, name: string)
+        +generateApiKey(): string
+        +updatePlan(plan: PlanType): Promise<void>
+        +isTrialExpired(): boolean
+        +canAccessFeature(feature: string): boolean
+    }
+
+    class Graph {
+        +id: UUID
+        +user_id: UUID
+        +name: string
+        +description?: string
+        +graph_data: JSON
+        +is_custom_agent: boolean
+        +is_public: boolean
+        +created_at: DateTime
+        +updated_at: DateTime
+        +__init__(user_id: UUID, name: string)
+        +serialize(): JSON
+        +deserialize(data: JSON): void
+        +validateStructure(): boolean
+        +clone(): Graph
+    }
+
+    class Subscription {
+        +id: UUID
+        +user_id: UUID
+        +stripe_customer_id: string
+        +stripe_subscription_id: string
+        +plan: PlanType
+        +status: SubscriptionStatus
+        +current_period_start: DateTime
+        +current_period_end: DateTime
+        +created_at: DateTime
+        +updated_at: DateTime
+        +__init__(user_id: UUID, plan: PlanType)
+        +isActive(): boolean
+        +cancelAtPeriodEnd(): Promise<void>
+        +upgrade(new_plan: PlanType): Promise<void>
+    }
+
+    class MonitoringLog {
+        +id: UUID
+        +user_id: UUID
+        +graph_id?: UUID
+        +event_type: string
+        +data: JSON
+        +timestamp: DateTime
+        +__init__(user_id: UUID, event_type: string)
+        +track(event: string, data: JSON): Promise<void>
+    }
+
+    class ApiKeyUsage {
+        +id: UUID
+        +user_id: UUID
+        +api_key: string
+        +endpoint: string
+        +method: string
+        +status_code: number
+        +response_time: number
+        +timestamp: DateTime
+        +__init__(user_id: UUID, api_key: string)
+        +recordUsage(endpoint: string, method: string): Promise<void>
+        +getUsageStats(period: string): Promise<UsageStats>
+    }
+
+    class AuthService {
+        +signUp(email: string, password: string): Promise<AuthResult>
+        +signIn(email: string, password: string): Promise<AuthResult>
+        +signInWithGoogle(token: string): Promise<AuthResult>
+        +signOut(): Promise<void>
+        +verifyToken(token: string): Promise<User>
+        +refreshToken(refreshToken: string): Promise<AuthResult>
+    }
+
+    class GraphService {
+        +createGraph(data: CreateGraphInput): Promise<Graph>
+        +updateGraph(id: UUID, data: UpdateGraphInput): Promise<Graph>
+        +deleteGraph(id: UUID): Promise<void>
+        +getGraph(id: UUID): Promise<Graph>
+        +getUserGraphs(user_id: UUID): Promise<Graph[]>
+        +createCustomAgent(graph_id: UUID): Promise<Graph>
+        +validateGraphData(data: JSON): Promise<ValidationResult>
+    }
+
+    class BillingService {
+        +createCustomer(user: User): Promise<StripeCustomer>
+        +createSubscription(customer_id: string, plan: PlanType): Promise<Subscription>
+        +handleWebhook(event: StripeEvent): Promise<void>
+        +upgradeSubscription(subscription_id: string, plan: PlanType): Promise<void>
+        +cancelSubscription(subscription_id: string): Promise<void>
+        +generateInvoice(subscription_id: string): Promise<Invoice>
+    }
+
+    class EmailService {
+        +sendWelcomeEmail(user: User): Promise<void>
+        +sendTrialExpiryEmail(user: User): Promise<void>
+        +sendBillingNotification(user: User, type: string): Promise<void>
+        +sendPasswordReset(email: string, token: string): Promise<void>
+        +renderTemplate(template: string, data: any): Promise<string>
+    }
+
+    class AdminService {
+        +getUserStats(): Promise<AdminStats>
+        +getUserList(filters: UserFilters): Promise<PaginatedUsers>
+        +updateUserPlan(user_id: UUID, plan: PlanType): Promise<void>
+        +createAdminUser(data: CreateAdminInput): Promise<User>
+        +getSystemHealth(): Promise<HealthStatus>
+        +exportUserData(user_id: UUID): Promise<ExportData>
+    }
+
+    class ThreeDCanvasComponent {
+        +nodes: Node[]
+        +edges: Edge[]
+        +camera: Camera
+        +controls: OrbitControls
+        +__init__(props: CanvasProps)
+        +addNode(node: Node): void
+        +removeNode(nodeId: string): void
+        +connectNodes(sourceId: string, targetId: string): void
+        +renderNodes(): JSX.Element
+        +handleNodeDrag(nodeId: string, position: Vector3): void
+    }
+
+    class NodeComponent {
+        +id: string
+        +type: NodeType
+        +position: Vector3
+        +data: NodeData
+        +ports: Port[]
+        +__init__(props: NodeProps)
+        +render(): JSX.Element
+        +onConnect(port: Port): void
+        +onDisconnect(port: Port): void
+        +updateData(data: NodeData): void
+    }
+
+    class ConnectionComponent {
+        +id: string
+        +source: string
+        +target: string
+        +sourcePort: string
+        +targetPort: string
+        +path: Vector3[]
+        +__init__(props: ConnectionProps)
+        +calculatePath(): Vector3[]
+        +render(): JSX.Element
+        +animate(): void
+    }
+
+    User ||--o{ Graph : owns
+    User ||--|| Subscription : has
+    User ||--o{ MonitoringLog : generates
+    User ||--o{ ApiKeyUsage : tracks
+    Graph ||--o{ MonitoringLog : references
+    AuthService ..> User : manages
+    GraphService ..> Graph : manages
+    BillingService ..> Subscription : manages
+    EmailService ..> User : notifies
+    AdminService ..> User : administers
+    ThreeDCanvasComponent ||--o{ NodeComponent : contains
+    ThreeDCanvasComponent ||--o{ ConnectionComponent : renders
+    NodeComponent ||--o{ ConnectionComponent : connects

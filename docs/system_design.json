@@ -1,0 +1,544 @@
+{
+  "project_metadata": {
+    "name": "byee_ugraph_saas",
+    "title": "Byee.in UGraph SaaS Platform - System Design",
+    "version": "1.0",
+    "created_date": "2025-08-07",
+    "author": "Bob - Architect",
+    "language": "English",
+    "programming_language": "Shadcn-ui, TypeScript, Tailwind CSS"
+  },
+  "implementation_approach": {
+    "overview": "Modern, scalable SaaS platform using Next.js full-stack architecture with TypeScript",
+    "key_challenges": [
+      "3D Visualization Performance: React Three Fiber integration requires optimized rendering for complex workflows with 1000+ nodes",
+      "Real-time Data Synchronization: Implementing efficient state management for collaborative workflow editing",
+      "Complex Nested Agent System: Hierarchical data structures for custom agents with proper serialization/deserialization",
+      "Enterprise-Grade Billing: Stripe integration with webhook reliability and usage tracking",
+      "Scalable Authentication: Supporting both email/password and Google OAuth with role-based access control"
+    ],
+    "technology_stack": {
+      "frontend": "Next.js 14 + TypeScript + Tailwind CSS + React Three Fiber for optimal performance and SEO",
+      "backend": "Next.js API routes with tRPC for type-safe API communication",
+      "database": "PostgreSQL with Prisma ORM for complex relational data and migrations",
+      "authentication": "NextAuth.js for unified auth flow with JWT sessions",
+      "payments": "Stripe SDK with webhook handling for subscription management",
+      "email": "Resend for transactional emails with React Email templates",
+      "deployment": "Vercel for frontend + Supabase for database + Redis for caching"
+    },
+    "architecture_rationale": "Next.js provides excellent developer experience with TypeScript, built-in API routes, and Vercel deployment. React Three Fiber enables high-performance 3D rendering while maintaining React paradigms. PostgreSQL with Prisma offers robust relational data handling for complex graph structures."
+  },
+  "database_schema": {
+    "users": {
+      "table_name": "users",
+      "columns": {
+        "id": "UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "name": "VARCHAR(255) NOT NULL",
+        "email": "VARCHAR(255) UNIQUE NOT NULL",
+        "password": "VARCHAR(255) -- nullable for OAuth users",
+        "provider": "VARCHAR(50) NOT NULL DEFAULT 'email' -- 'email' | 'google'",
+        "plan": "VARCHAR(20) NOT NULL DEFAULT 'free' -- 'free' | 'pro' | 'enterprise'",
+        "api_key": "VARCHAR(255) UNIQUE",
+        "role": "VARCHAR(20) NOT NULL DEFAULT 'user' -- 'user' | 'admin'",
+        "theme": "VARCHAR(20) NOT NULL DEFAULT 'system' -- 'light' | 'dark' | 'system'",
+        "trial_ends_at": "TIMESTAMP",
+        "created_at": "TIMESTAMP DEFAULT NOW()",
+        "updated_at": "TIMESTAMP DEFAULT NOW()"
+      },
+      "indexes": [
+        "INDEX idx_email (email)",
+        "INDEX idx_api_key (api_key)",
+        "INDEX idx_plan (plan)",
+        "INDEX idx_created_at (created_at)"
+      ]
+    },
+    "graphs": {
+      "table_name": "graphs",
+      "columns": {
+        "id": "UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "user_id": "UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE",
+        "name": "VARCHAR(255) NOT NULL",
+        "description": "TEXT",
+        "graph_data": "JSONB NOT NULL -- stores node and edge data",
+        "is_custom_agent": "BOOLEAN DEFAULT FALSE",
+        "is_public": "BOOLEAN DEFAULT FALSE",
+        "created_at": "TIMESTAMP DEFAULT NOW()",
+        "updated_at": "TIMESTAMP DEFAULT NOW()"
+      },
+      "indexes": [
+        "INDEX idx_user_id (user_id)",
+        "INDEX idx_is_custom_agent (is_custom_agent)",
+        "INDEX idx_created_at (created_at)",
+        "INDEX gin_graph_data (graph_data) -- GIN index for JSONB queries"
+      ]
+    },
+    "subscriptions": {
+      "table_name": "subscriptions",
+      "columns": {
+        "id": "UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "user_id": "UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE",
+        "stripe_customer_id": "VARCHAR(255) NOT NULL",
+        "stripe_subscription_id": "VARCHAR(255) UNIQUE NOT NULL",
+        "plan": "VARCHAR(20) NOT NULL -- 'free' | 'pro' | 'enterprise'",
+        "status": "VARCHAR(50) NOT NULL -- 'active' | 'canceled' | 'past_due' | 'trialing'",
+        "current_period_start": "TIMESTAMP NOT NULL",
+        "current_period_end": "TIMESTAMP NOT NULL",
+        "created_at": "TIMESTAMP DEFAULT NOW()",
+        "updated_at": "TIMESTAMP DEFAULT NOW()"
+      },
+      "indexes": [
+        "UNIQUE(user_id) -- One subscription per user",
+        "INDEX idx_stripe_customer_id (stripe_customer_id)",
+        "INDEX idx_stripe_subscription_id (stripe_subscription_id)",
+        "INDEX idx_status (status)"
+      ]
+    },
+    "monitoring_logs": {
+      "table_name": "monitoring_logs",
+      "columns": {
+        "id": "UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "user_id": "UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE",
+        "graph_id": "UUID REFERENCES graphs(id) ON DELETE SET NULL",
+        "event_type": "VARCHAR(100) NOT NULL -- 'graph_created', 'workflow_executed', etc.",
+        "data": "JSONB -- flexible event data",
+        "timestamp": "TIMESTAMP DEFAULT NOW()"
+      },
+      "indexes": [
+        "INDEX idx_user_id (user_id)",
+        "INDEX idx_graph_id (graph_id)",
+        "INDEX idx_event_type (event_type)",
+        "INDEX idx_timestamp (timestamp)",
+        "INDEX gin_data (data) -- GIN index for JSONB queries"
+      ]
+    },
+    "api_key_usage": {
+      "table_name": "api_key_usage",
+      "columns": {
+        "id": "UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "user_id": "UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE",
+        "api_key": "VARCHAR(255) NOT NULL",
+        "endpoint": "VARCHAR(255) NOT NULL",
+        "method": "VARCHAR(10) NOT NULL -- GET, POST, PUT, DELETE",
+        "status_code": "INTEGER NOT NULL",
+        "response_time": "INTEGER -- in milliseconds",
+        "timestamp": "TIMESTAMP DEFAULT NOW()"
+      },
+      "indexes": [
+        "INDEX idx_user_id (user_id)",
+        "INDEX idx_api_key (api_key)",
+        "INDEX idx_endpoint (endpoint)",
+        "INDEX idx_timestamp (timestamp)",
+        "INDEX idx_status_code (status_code)"
+      ]
+    },
+    "email_templates": {
+      "table_name": "email_templates",
+      "columns": {
+        "id": "UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+        "name": "VARCHAR(255) UNIQUE NOT NULL -- 'welcome', 'trial_expiry', etc.",
+        "subject": "VARCHAR(255) NOT NULL",
+        "html_content": "TEXT NOT NULL",
+        "text_content": "TEXT NOT NULL",
+        "variables": "JSONB -- template variables schema",
+        "is_active": "BOOLEAN DEFAULT TRUE",
+        "created_at": "TIMESTAMP DEFAULT NOW()",
+        "updated_at": "TIMESTAMP DEFAULT NOW()"
+      },
+      "indexes": [
+        "INDEX idx_name (name)",
+        "INDEX idx_is_active (is_active)"
+      ]
+    }
+  },
+  "api_endpoints": {
+    "authentication": {
+      "/api/auth/signup": {
+        "method": "POST",
+        "description": "Register new user with email and password",
+        "request_body": {
+          "email": "string",
+          "password": "string",
+          "name": "string"
+        },
+        "response": {
+          "user": "User object",
+          "token": "JWT string",
+          "success": "boolean"
+        }
+      },
+      "/api/auth/signin": {
+        "method": "POST",
+        "description": "Authenticate user with email and password",
+        "request_body": {
+          "email": "string",
+          "password": "string"
+        },
+        "response": {
+          "user": "User object",
+          "token": "JWT string",
+          "success": "boolean"
+        }
+      },
+      "/api/auth/google": {
+        "method": "POST",
+        "description": "Authenticate user with Google OAuth token",
+        "request_body": {
+          "token": "string"
+        },
+        "response": {
+          "user": "User object",
+          "token": "JWT string",
+          "success": "boolean"
+        }
+      }
+    },
+    "graphs": {
+      "/api/graphs": {
+        "GET": {
+          "description": "Get user's graphs with pagination",
+          "query_params": {
+            "page": "number",
+            "limit": "number",
+            "search": "string"
+          },
+          "response": {
+            "graphs": "Graph[]",
+            "total": "number",
+            "page": "number"
+          }
+        },
+        "POST": {
+          "description": "Create new graph",
+          "request_body": {
+            "name": "string",
+            "description": "string (optional)",
+            "graph_data": "GraphData object",
+            "is_custom_agent": "boolean (optional)"
+          },
+          "response": {
+            "graph": "Graph object",
+            "success": "boolean"
+          }
+        }
+      },
+      "/api/graphs/[id]": {
+        "GET": {
+          "description": "Get specific graph by ID",
+          "response": {
+            "graph": "Graph object",
+            "success": "boolean"
+          }
+        },
+        "PUT": {
+          "description": "Update existing graph",
+          "request_body": {
+            "name": "string (optional)",
+            "description": "string (optional)",
+            "graph_data": "GraphData object (optional)"
+          },
+          "response": {
+            "graph": "Graph object",
+            "success": "boolean"
+          }
+        },
+        "DELETE": {
+          "description": "Delete graph",
+          "response": {
+            "success": "boolean"
+          }
+        }
+      }
+    },
+    "billing": {
+      "/api/billing/create-checkout": {
+        "method": "POST",
+        "description": "Create Stripe checkout session",
+        "request_body": {
+          "plan": "'pro' | 'enterprise'",
+          "return_url": "string"
+        },
+        "response": {
+          "checkout_url": "string",
+          "success": "boolean"
+        }
+      },
+      "/api/billing/portal": {
+        "method": "POST",
+        "description": "Create Stripe billing portal session",
+        "response": {
+          "portal_url": "string",
+          "success": "boolean"
+        }
+      },
+      "/api/billing/webhook": {
+        "method": "POST",
+        "description": "Handle Stripe webhooks",
+        "request_body": {
+          "stripe_event": "StripeEvent object"
+        },
+        "response": {
+          "success": "boolean"
+        }
+      }
+    },
+    "usage": {
+      "/api/usage": {
+        "method": "GET",
+        "description": "Get current usage statistics",
+        "response": {
+          "current_period": {
+            "api_calls": "number",
+            "graphs_created": "number",
+            "monitoring_time": "number"
+          },
+          "limits": {
+            "api_calls": "number",
+            "graphs_created": "number",
+            "monitoring_time": "number"
+          },
+          "trial_days_remaining": "number (optional)"
+        }
+      },
+      "/api/usage/history": {
+        "method": "GET",
+        "description": "Get usage history",
+        "query_params": {
+          "start_date": "string",
+          "end_date": "string",
+          "granularity": "'day' | 'week' | 'month'"
+        },
+        "response": {
+          "data": "Array of usage data points"
+        }
+      }
+    },
+    "admin": {
+      "/api/admin/stats": {
+        "method": "GET",
+        "description": "Get admin dashboard statistics",
+        "response": {
+          "users": {
+            "total": "number",
+            "active_last_30_days": "number",
+            "pro_users": "number",
+            "trial_users": "number"
+          },
+          "revenue": {
+            "mrr": "number",
+            "arr": "number",
+            "growth_rate": "number"
+          },
+          "usage": {
+            "total_graphs": "number",
+            "total_api_calls": "number",
+            "avg_session_duration": "number"
+          }
+        }
+      },
+      "/api/admin/users": {
+        "method": "GET",
+        "description": "Get paginated user list",
+        "query_params": {
+          "page": "number",
+          "limit": "number",
+          "plan": "string (optional)",
+          "search": "string (optional)"
+        },
+        "response": {
+          "users": "User[]",
+          "total": "number",
+          "page": "number",
+          "total_pages": "number"
+        }
+      },
+      "/api/admin/users/[id]": {
+        "method": "PUT",
+        "description": "Update user by admin",
+        "request_body": {
+          "plan": "string (optional)",
+          "role": "string (optional)",
+          "trial_ends_at": "string (optional)"
+        },
+        "response": {
+          "user": "User object",
+          "success": "boolean"
+        }
+      }
+    }
+  },
+  "frontend_architecture": {
+    "component_structure": {
+      "layout": {
+        "RootLayout": "Main layout with theme provider and auth context",
+        "DashboardLayout": "Dashboard-specific layout with sidebar navigation",
+        "AuthLayout": "Authentication pages layout"
+      },
+      "pages": {
+        "HomePage": "Landing page with 3D hero section",
+        "DashboardPage": "Main dashboard with 3D canvas",
+        "PricingPage": "Interactive pricing table",
+        "AdminPage": "Admin dashboard with user management",
+        "AuthPages": "Login, signup, and OAuth callback pages"
+      },
+      "components": {
+        "ThreeDCanvas": "React Three Fiber canvas component",
+        "NodeComponent": "Individual workflow node with 3D rendering",
+        "ConnectionComponent": "Visual connection between nodes",
+        "Sidebar": "Collapsible sidebar with node palette",
+        "PropertyPanel": "Node property editing interface"
+      }
+    },
+    "state_management": {
+      "approach": "Zustand for client state + TanStack Query for server state",
+      "stores": {
+        "authStore": "User authentication state",
+        "graphStore": "Current graph data and operations",
+        "uiStore": "UI state (theme, sidebar, modals)",
+        "adminStore": "Admin dashboard state"
+      }
+    },
+    "3d_rendering": {
+      "library": "React Three Fiber + Drei helpers",
+      "performance": {
+        "instancing": "Use instanced meshes for repeated node types",
+        "culling": "Frustum culling for large graphs",
+        "lod": "Level of detail for distant nodes",
+        "lazy_loading": "Lazy load complex 3D models"
+      },
+      "optimization": {
+        "canvas_size": "Responsive canvas with device pixel ratio",
+        "frame_rate": "Target 60fps with adaptive quality",
+        "memory": "Dispose of unused geometries and materials"
+      }
+    }
+  },
+  "backend_architecture": {
+    "api_design": {
+      "pattern": "RESTful APIs with tRPC for type safety",
+      "validation": "Zod schemas for all inputs",
+      "error_handling": "Consistent error responses with proper HTTP status codes",
+      "rate_limiting": "Redis-based rate limiting per user/endpoint"
+    },
+    "services": {
+      "AuthService": "Authentication and authorization logic",
+      "GraphService": "Graph CRUD operations and validation",
+      "BillingService": "Stripe integration and webhook handling",
+      "EmailService": "Transactional email sending with templates",
+      "AdminService": "Admin operations and analytics",
+      "UsageService": "Usage tracking and analytics"
+    },
+    "middleware": {
+      "auth": "JWT token verification middleware",
+      "cors": "CORS configuration for API endpoints",
+      "ratelimit": "Rate limiting based on user plan",
+      "validation": "Request validation with Zod schemas",
+      "logging": "Structured logging for debugging and monitoring"
+    }
+  },
+  "security_architecture": {
+    "authentication": {
+      "jwt_tokens": "Short-lived access tokens (15 minutes) with refresh tokens (7 days)",
+      "oauth": "Google OAuth with secure token exchange",
+      "password_hashing": "bcrypt with salt rounds of 12",
+      "session_management": "Secure session storage with Redis"
+    },
+    "authorization": {
+      "rbac": "Role-based access control (user, admin)",
+      "api_keys": "Secure API key generation and validation for Pro users",
+      "plan_limits": "Enforce usage limits based on subscription plan"
+    },
+    "data_protection": {
+      "encryption_rest": "Database-level encryption for sensitive fields",
+      "encryption_transit": "HTTPS/TLS 1.3 for all communications",
+      "input_validation": "Comprehensive validation using Zod schemas",
+      "csrf_protection": "CSRF tokens for state-changing operations",
+      "cors_policy": "Strict CORS policies for API endpoints"
+    },
+    "infrastructure_security": {
+      "secrets_management": "Secure storage of secrets using Vercel environment variables",
+      "database_security": "PostgreSQL with SSL connections and restricted access",
+      "webhook_security": "Stripe webhook signature verification",
+      "content_security_policy": "Strict CSP headers to prevent XSS attacks"
+    }
+  },
+  "deployment_strategy": {
+    "production_architecture": "Internet → Cloudflare CDN → Vercel Edge Network → Next.js Application → Supabase PostgreSQL → Redis Cache → External APIs",
+    "environments": {
+      "development": "Local Next.js + Local PostgreSQL + Local Redis",
+      "staging": "Vercel Preview + Supabase Staging + Upstash Staging",
+      "production": "Vercel Production + Supabase Production + Upstash Production"
+    },
+    "ci_cd": {
+      "pipeline": "GitHub Actions for testing and deployment",
+      "testing": "Jest for unit tests, Playwright for E2E tests",
+      "deployment": "Automatic deployment to Vercel with preview environments",
+      "database_migrations": "Prisma migrations with rollback capabilities"
+    },
+    "monitoring": {
+      "error_tracking": "Sentry for error monitoring and performance tracking",
+      "analytics": "Vercel Analytics for performance metrics",
+      "uptime_monitoring": "UptimeRobot for service availability",
+      "database_monitoring": "Supabase built-in monitoring and alerts"
+    }
+  },
+  "scalability_considerations": {
+    "database_optimization": {
+      "connection_pooling": "PgBouncer for efficient connection management",
+      "read_replicas": "Implement read replicas for analytics queries",
+      "indexing_strategy": "Optimize indexes for common query patterns",
+      "data_archiving": "Archive old logs and usage data to maintain performance"
+    },
+    "caching_strategy": {
+      "api_response_caching": "Redis caching for frequently accessed data",
+      "static_asset_caching": "Vercel Edge Network for static assets",
+      "database_query_caching": "Prisma query result caching",
+      "session_caching": "Redis-based session storage for scalability"
+    },
+    "performance_optimization": {
+      "code_splitting": "Dynamic imports for large 3D components",
+      "image_optimization": "Next.js Image component with Vercel optimization",
+      "bundle_analysis": "Regular bundle size monitoring and optimization",
+      "3d_rendering": "WebGL optimization with React Three Fiber performance monitoring"
+    }
+  },
+  "maintainability_features": {
+    "code_quality": {
+      "typescript": "Full type safety across frontend and backend",
+      "linting": "ESLint + Prettier for consistent code formatting",
+      "testing": "Jest for unit tests, Playwright for E2E tests",
+      "code_reviews": "Required PR reviews with automated checks"
+    },
+    "development_workflow": {
+      "git_flow": "Feature branches with automated deployment previews",
+      "ci_cd_pipeline": "GitHub Actions for testing and deployment",
+      "database_migrations": "Prisma migrations with rollback capabilities",
+      "environment_parity": "Consistent environments across dev/staging/prod"
+    },
+    "documentation": {
+      "api_documentation": "OpenAPI/Swagger documentation for all endpoints",
+      "component_library": "Storybook for UI component documentation",
+      "architecture_docs": "Detailed system architecture and decision records",
+      "deployment_guides": "Step-by-step deployment and maintenance procedures"
+    }
+  },
+  "open_questions": [
+    "Should we support on-premise deployment for enterprise customers?",
+    "What level of workflow execution should be supported in MVP vs future releases?",
+    "Should we implement real-time collaboration in Phase 1 or Phase 2?",
+    "How should we handle large workflows (1000+ nodes) from a performance perspective?",
+    "Should we support workflow versioning and rollback capabilities?",
+    "What integrations should be prioritized for the initial launch?",
+    "How should we approach mobile experience for workflow editing?",
+    "Should we implement a plugin system for custom node types?"
+  ],
+  "clarifications_needed": [
+    "Workflow Execution Engine: The PRD mentions workflow execution but doesn't specify if this should be real-time execution or scheduled execution. This impacts the architecture significantly.",
+    "Real-time Collaboration: While mentioned in Phase 3, the technical approach (WebSockets, WebRTC, or operational transforms) needs to be specified earlier for proper architecture planning.",
+    "3D Performance Requirements: The exact performance requirements for the 3D interface (target FPS, maximum number of simultaneous nodes, mobile performance) need clarification.",
+    "Data Retention Policy: How long should we retain user data, logs, and usage analytics? This impacts storage costs and compliance requirements.",
+    "Enterprise Deployment: Should we support on-premise deployment for enterprise customers? This would require containerization and different architecture considerations.",
+    "Integration Priorities: Which third-party integrations should be prioritized in MVP vs later phases? This affects API design and data models.",
+    "Mobile Experience: The PRD mentions mobile responsiveness but doesn't specify the level of functionality expected on mobile devices for the 3D workflow editor.",
+    "Backup and Disaster Recovery: What are the RTO/RPO requirements? This impacts database backup strategies and geographic distribution."
+  ]
+}

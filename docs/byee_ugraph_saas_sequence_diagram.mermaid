@@ -1,0 +1,170 @@
+sequenceDiagram
+    participant C as Client
+    participant API as Next.js API
+    participant Auth as AuthService
+    participant DB as PostgreSQL
+    participant Stripe as Stripe API
+    participant Email as EmailService
+    participant Cache as Redis
+    participant Canvas as 3D Canvas
+
+    Note over C,Cache: User Registration Flow
+    C->>API: POST /api/auth/signup {email, password, name}
+    API->>Auth: signUp(email, password, name)
+    Auth->>Auth: hashPassword(password)
+    Auth->>DB: INSERT INTO users (name, email, password, provider)
+    DB-->>Auth: user created {id, email, name}
+    Auth->>Auth: generateApiKey()
+    Auth->>DB: UPDATE users SET api_key WHERE id = user.id
+    Auth->>Auth: generateJWT(user)
+    Auth-->>API: AuthResult{user, token}
+    API->>Email: sendWelcomeEmail(user)
+    Email->>Email: renderTemplate('welcome', {name: user.name})
+    Email->>Email: send(user.email, subject, html, text)
+    Email-->>API: email sent successfully
+    API-->>C: {user, token, success: true}
+
+    Note over C,Cache: Google OAuth Flow
+    C->>API: POST /api/auth/google {token}
+    API->>Auth: signInWithGoogle(token)
+    Auth->>Auth: verifyGoogleToken(token)
+    Auth->>DB: SELECT * FROM users WHERE email = google_email
+    alt User exists
+        DB-->>Auth: existing user
+        Auth->>Auth: generateJWT(user)
+    else New user
+        DB-->>Auth: no user found
+        Auth->>DB: INSERT INTO users (name, email, provider='google')
+        DB-->>Auth: new user created
+        Auth->>Auth: generateApiKey()
+        Auth->>DB: UPDATE users SET api_key
+        Auth->>Email: sendWelcomeEmail(user)
+    end
+    Auth-->>API: AuthResult{user, token}
+    API-->>C: {user, token, success: true}
+
+    Note over C,Cache: Graph Creation Flow
+    C->>API: POST /api/graphs {name, graph_data}
+    API->>Auth: verifyToken(token)
+    Auth-->>API: user verified
+    API->>DB: SELECT * FROM users WHERE id = user_id
+    DB-->>API: user data with plan info
+    API->>API: validateGraphData(graph_data)
+    API->>API: checkPlanLimits(user.plan, graph_count)
+    API->>DB: INSERT INTO graphs (user_id, name, graph_data)
+    DB-->>API: graph created {id, name, created_at}
+    API->>DB: INSERT INTO monitoring_logs (user_id, event_type='graph_created')
+    API->>Cache: SET graph_cache_{id} (graph_data, TTL: 3600)
+    API->>Canvas: initializeCanvas(graph_data)
+    Canvas-->>API: canvas ready
+    API-->>C: {graph, success: true}
+
+    Note over C,Cache: 3D Canvas Interaction Flow
+    C->>Canvas: addNode(nodeType, position)
+    Canvas->>Canvas: createNodeGeometry(nodeType)
+    Canvas->>Canvas: updateScene()
+    Canvas->>API: POST /api/graphs/{id} {updated_graph_data}
+    API->>Auth: verifyToken(token)
+    Auth-->>API: user verified
+    API->>DB: UPDATE graphs SET graph_data WHERE id AND user_id
+    API->>Cache: SET graph_cache_{id} (updated_data)
+    API-->>Canvas: update confirmed
+    Canvas->>Canvas: renderConnections()
+    Canvas-->>C: node added successfully
+
+    Note over C,Cache: Billing Upgrade Flow
+    C->>API: POST /api/billing/create-checkout {plan: 'pro'}
+    API->>Auth: verifyToken(token)
+    Auth-->>API: user verified
+    API->>DB: SELECT * FROM subscriptions WHERE user_id
+    DB-->>API: current subscription or null
+    API->>Stripe: stripe.checkout.sessions.create()
+    Stripe-->>API: checkout session {url, id}
+    API->>DB: INSERT INTO monitoring_logs (event_type='checkout_started')
+    API-->>C: {checkout_url, success: true}
+
+    Note over C,Cache: Stripe Webhook Handling
+    Stripe->>API: POST /api/billing/webhook {event}
+    API->>API: verifyStripeSignature(event)
+    API->>API: handleWebhookEvent(event)
+    alt subscription.created
+        API->>DB: INSERT INTO subscriptions (stripe_subscription_id, plan)
+        API->>DB: UPDATE users SET plan = 'pro'
+        API->>Email: sendBillingNotification(user, 'upgrade')
+    else invoice.payment_succeeded
+        API->>DB: UPDATE subscriptions SET status = 'active'
+        API->>Email: sendBillingNotification(user, 'payment_success')
+    else invoice.payment_failed
+        API->>DB: UPDATE subscriptions SET status = 'past_due'
+        API->>Email: sendBillingNotification(user, 'payment_failed')
+    end
+    API-->>Stripe: 200 OK
+
+    Note over C,Cache: Usage Tracking Flow
+    C->>API: GET /api/graphs/{id}
+    API->>Auth: verifyToken(token)
+    Auth-->>API: user verified
+    API->>DB: INSERT INTO api_key_usage (user_id, endpoint, method, timestamp)
+    API->>Cache: INCR usage_count_{user_id} (TTL: 86400)
+    API->>Cache: GET graph_cache_{id}
+    Cache-->>API: cached graph data or null
+    alt Cache hit
+        API-->>C: {graph, usage_remaining, from_cache: true}
+    else Cache miss
+        API->>DB: SELECT * FROM graphs WHERE id AND user_id
+        DB-->>API: graph data
+        API->>Cache: SET graph_cache_{id} (graph_data, TTL: 3600)
+        API-->>C: {graph, usage_remaining, from_cache: false}
+    end
+
+    Note over C,Cache: Admin Dashboard Flow
+    C->>API: GET /api/admin/stats
+    API->>Auth: verifyToken(token) & checkRole('admin')
+    Auth-->>API: admin verified
+    API->>Cache: GET admin_stats_cache
+    Cache-->>API: cached stats or null
+    alt Cache miss
+        API->>DB: SELECT COUNT(*) FROM users
+        API->>DB: SELECT COUNT(*) FROM subscriptions WHERE status='active'
+        API->>DB: SELECT SUM(amount) FROM invoices WHERE created_at > last_month
+        API->>DB: SELECT AVG(usage) FROM api_key_usage WHERE timestamp > last_month
+        DB-->>API: aggregated statistics
+        API->>Cache: SET admin_stats_cache (stats, TTL: 300)
+    end
+    API-->>C: {total_users, active_subs, mrr, conversion_rate, avg_usage}
+
+    Note over C,Cache: Email Automation Flow
+    API->>Email: scheduleEmail(user, template, trigger_date)
+    Email->>Email: renderTemplate(template_name, user_data)
+    Email->>Email: validateEmailContent(html, text)
+    Email->>Email: send(user.email, subject, html_content, text_content)
+    alt Email sent successfully
+        Email->>DB: INSERT INTO monitoring_logs (event_type='email_sent')
+        Email-->>API: success
+    else Email failed
+        Email->>DB: INSERT INTO monitoring_logs (event_type='email_failed')
+        Email-->>API: error
+    end
+
+    Note over C,Cache: Trial Expiry Automation
+    API->>API: checkTrialExpirations() [Cron Job]
+    API->>DB: SELECT * FROM users WHERE trial_ends_at < NOW() AND plan = 'free'
+    DB-->>API: expiring trial users
+    loop For each expiring user
+        API->>Email: sendTrialExpiryEmail(user)
+        API->>DB: UPDATE users SET trial_expired = true
+        API->>DB: INSERT INTO monitoring_logs (event_type='trial_expired')
+    end
+
+    Note over C,Cache: Custom Agent Creation Flow
+    C->>API: POST /api/graphs/{id}/create-agent {name}
+    API->>Auth: verifyToken(token)
+    Auth-->>API: user verified
+    API->>DB: SELECT * FROM graphs WHERE id AND user_id
+    DB-->>API: source graph data
+    API->>API: validateGraphForAgent(graph_data)
+    API->>API: createAgentFromGraph(graph_data, name)
+    API->>DB: INSERT INTO graphs (is_custom_agent=true, graph_data)
+    DB-->>API: custom agent created
+    API->>Cache: SET custom_agent_cache_{id} (agent_data)
+    API-->>C: {custom_agent, success: true}
