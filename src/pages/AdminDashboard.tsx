@@ -23,6 +23,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { contactService, ContactSubmission } from '@/lib/contactService';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import { OrganizationManager } from '@/components/OrganizationManager';
+import { OrganizationSubscriptions } from '@/components/OrganizationSubscriptions';
 
 export function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -143,6 +145,26 @@ export function AdminDashboard() {
     }
   };
 
+  const handleMakeUserAdmin = async (userId: string) => {
+    try {
+      await supabase
+        .from('profiles')
+        .update({ role: 'admin' })
+        .eq('id', userId);
+      loadDashboardData();
+      toast({
+        title: "Success",
+        description: "User promoted to admin",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to promote user",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUpdateProduct = async () => {
     if (!editingProduct) return;
     try {
@@ -181,9 +203,10 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="dashboard">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="organizations">Organizations</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="submissions">Contact Submissions</TabsTrigger>
           </TabsList>
@@ -344,9 +367,9 @@ export function AdminDashboard() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleSendEmail(user.id, 'invoice')}
+                              onClick={() => handleMakeUserAdmin(user.id)}
                             >
-                              <DollarSign className="h-3 w-3" />
+                              Make Admin
                             </Button>
                           </div>
                         </TableCell>
@@ -356,6 +379,9 @@ export function AdminDashboard() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+          <TabsContent value="organizations">
+            <OrganizationManager />
           </TabsContent>
           <TabsContent value="products">
             {/* Product Management */}

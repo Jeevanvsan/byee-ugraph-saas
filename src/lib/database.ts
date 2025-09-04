@@ -49,7 +49,7 @@ export interface Testimonial {
   avatarUrl?: string;
   content: string;
   rating: number;
-  product: 'ugraph' | 'secureflow' | 'ai-connect' | 'team-workspace';
+  product: 'orrery' | 'secureflow' | 'ai-connect' | 'team-workspace';
   status: 'pending' | 'approved' | 'rejected';
   isFeatured: boolean;
   displayOrder: number;
@@ -410,7 +410,7 @@ class SupabaseDatabase {
     return {
       id: sub.id,
       userId: sub.user_id,
-      productId: 'ugraph', // Default product since it's not in the current schema
+      productId: 'orrery', // Default product since it's not in the current schema
       plan: sub.plan,
       status: sub.status,
       billingCycle: sub.billing_cycle,

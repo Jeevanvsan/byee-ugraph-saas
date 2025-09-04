@@ -11,6 +11,8 @@ export interface AuthUser {
   lastName: string;
   avatar?: string;
   plan: 'free' | 'pro' | 'enterprise';
+  role: 'user' | 'admin' | 'owner';
+  organization_id?: string;
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -21,6 +23,7 @@ export interface RegisterData {
   password: string;
   firstName: string;
   lastName: string;
+  role?: 'user' | 'admin';
 }
 
 class AuthService {
@@ -37,7 +40,7 @@ class AuthService {
   }
 
   async register(userData: RegisterData): Promise<{ user: AuthUser; session: unknown }> {
-    const { email, password, firstName, lastName } = userData;
+    const { email, password, firstName, lastName, role = 'user' } = userData;
     
     const { data, error } = await signUpWithPassword(email, password, {
       first_name: firstName,
@@ -54,6 +57,7 @@ class AuthService {
         email: email,
         first_name: firstName,
         last_name: lastName,
+        role: role,
         plan: 'free',
         is_verified: false
       });
@@ -70,6 +74,7 @@ class AuthService {
       email: email,
       firstName: firstName,
       lastName: lastName,
+      role: role,
       plan: 'free',
       isVerified: false,
       createdAt: new Date().toISOString(),
@@ -110,6 +115,8 @@ class AuthService {
       lastName: profile.last_name,
       avatar: profile.avatar_url || undefined,
       plan: profile.plan,
+      role: profile.role,
+      organization_id: profile.organization_id || undefined,
       isVerified: profile.is_verified,
       createdAt: profile.created_at,
       updatedAt: profile.updated_at,

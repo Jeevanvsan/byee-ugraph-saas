@@ -403,8 +403,8 @@ export default function CompanyHomePage() {
             <div>
               <h4 className="font-bold mb-6 text-lg">Product</h4>
               <ul className="space-y-4 text-gray-400">
-                <li><Link to="/products/ugraph" className="hover:text-white transition-colors">UGraph</Link></li>
-                <li><Link to="/products/ugraph/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/products/orrery" className="hover:text-white transition-colors">Orrery</Link></li>
+                <li><Link to="/products/orrery/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
                 <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
               </ul>

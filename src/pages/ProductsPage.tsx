@@ -242,7 +242,7 @@ export default function ProductsPage() {
             <div>
               <h4 className="font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><Link to="/products/ugraph" className="hover:text-primary transition-colors">UGraph</Link></li>
+                <li><Link to="/products/orrery" className="hover:text-primary transition-colors">Orrery</Link></li>
                 <li><Link to="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
                 <li><Link to="/changelog" className="hover:text-primary transition-colors">Changelog</Link></li>
               </ul>

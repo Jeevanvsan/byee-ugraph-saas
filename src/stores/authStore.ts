@@ -13,6 +13,7 @@ interface AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   initializeAuth: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -65,6 +66,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: () => set({ error: null }),
+
+      refreshUser: async () => {
+        try {
+          const user = await authService.getCurrentUser();
+          set({ user, isAuthenticated: !!user });
+        } catch (error) {
+          console.error('Refresh user error:', error);
+        }
+      },
     }),
     {
       name: 'byee-auth-storage',

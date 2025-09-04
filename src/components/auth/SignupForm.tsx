@@ -20,6 +20,7 @@ const signupSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one lowercase letter, one uppercase letter, and one number'),
   confirmPassword: z.string(),
+  role: z.enum(['user', 'admin']).optional(),
   terms: z.boolean().refine((val) => val === true, 'You must accept the terms and conditions'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -60,6 +61,7 @@ export function SignupForm() {
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
+        role: data.role || 'user',
       });
       navigate('/dashboard');
     } catch (error) {
@@ -150,6 +152,18 @@ export function SignupForm() {
                 {errors.email && (
                   <p className="text-sm text-red-600">{errors.email.message}</p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="role">Account Type</Label>
+                <select
+                  {...register('role')}
+                  id="role"
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                >
+                  <option value="user">Regular User</option>
+                  <option value="owner">Organization Admin</option>
+                </select>
               </div>
 
               <div className="space-y-2">

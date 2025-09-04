@@ -7,20 +7,20 @@ export interface ProductStats {
 }
 
 class ProductStatsService {
-  async getUGraphStats(): Promise<ProductStats> {
+  async getOrreryStats(): Promise<ProductStats> {
     try {
-      // Get users subscribed to UGraph (excluding admins)
+      // Get users subscribed to Orrery (excluding admins)
       const { count: activeUsers } = await supabase
         .from('subscriptions')
         .select('*', { count: 'exact', head: true })
-        .eq('product', 'ugraph')
+        .eq('product', 'orrery')
         .eq('status', 'active');
 
-      // Get workflows created for UGraph
+      // Get workflows created for Orrery
       const { count: workflowsCreated } = await supabase
         .from('workflows')
         .select('*', { count: 'exact', head: true })
-        .eq('product', 'ugraph');
+        .eq('product', 'orrery');
 
       return {
         activeUsers: activeUsers || 0,

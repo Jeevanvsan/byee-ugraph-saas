@@ -1,14 +1,14 @@
 {
   "document_metadata": {
-    "title": "Product Requirements Document - Byee.in UGraph SaaS Platform",
+    "title": "Product Requirements Document - SandVar Orrery SaaS Platform",
     "version": "1.0",
     "created_date": "2025-08-07",
     "author": "Emma - Product Manager",
     "language": "English",
     "programming_language": "Shadcn-ui, TypeScript, Tailwind CSS",
-    "project_name": "byee_ugraph_saas"
+    "project_name": "sandvar_orrery_saas"
   },
-  "original_requirements": "Full SaaS Web App for Byee.in / UGraph - Create a futuristic, premium SaaS web platform featuring UGraph (visual LangGraph builder) with 3D React-based frontend, authentication, billing, admin dashboard, usage tracking, and comprehensive user management system.",
+  "original_requirements": "Full SaaS Web App for SandVar / Orrery - Create a futuristic, premium SaaS web platform featuring Orrery (visual LangGraph builder) with 3D React-based frontend, authentication, billing, admin dashboard, usage tracking, and comprehensive user management system.",
   "product_definition": {
     "product_goals": [
       {
@@ -97,7 +97,7 @@
           "market_position": "Lightweight AI agent tool"
         }
       ],
-      "competitive_quadrant_chart": "```mermaid\nquadrantChart\n    title \"AI Workflow Automation Competitive Landscape\"\n    x-axis \"Technical Complexity\" --> \"User-Friendly\"\n    y-axis \"AI-Native Features\" --> \"General Automation\"\n    quadrant-1 \"AI-First Simple\"\n    quadrant-2 \"Mass Market Leaders\"\n    quadrant-3 \"Technical Platforms\"\n    quadrant-4 \"AI Developer Tools\"\n    \"n8n\": [0.25, 0.4]\n    \"Zapier\": [0.8, 0.3]\n    \"Power Automate\": [0.6, 0.4]\n    \"CrewAI\": [0.2, 0.8]\n    \"AutoGen\": [0.3, 0.7]\n    \"LangChain\": [0.15, 0.9]\n    \"OpenAI Swarm\": [0.25, 0.85]\n    \"UGraph (Target)\": [0.7, 0.9]\n```"
+      "competitive_quadrant_chart": "```mermaid\nquadrantChart\n    title \"AI Workflow Automation Competitive Landscape\"\n    x-axis \"Technical Complexity\" --> \"User-Friendly\"\n    y-axis \"AI-Native Features\" --> \"General Automation\"\n    quadrant-1 \"AI-First Simple\"\n    quadrant-2 \"Mass Market Leaders\"\n    quadrant-3 \"Technical Platforms\"\n    quadrant-4 \"AI Developer Tools\"\n    \"n8n\": [0.25, 0.4]\n    \"Zapier\": [0.8, 0.3]\n    \"Power Automate\": [0.6, 0.4]\n    \"CrewAI\": [0.2, 0.8]\n    \"AutoGen\": [0.3, 0.7]\n    \"LangChain\": [0.15, 0.9]\n    \"OpenAI Swarm\": [0.25, 0.85]\n    \"Orrery (Target)\": [0.7, 0.9]\n```"
     }
   },
   "market_analysis": {
@@ -137,7 +137,7 @@
   },
   "technical_specifications": {
     "requirements_analysis": {
-      "overview": "UGraph SaaS platform requires a modern, scalable architecture supporting 3D visualization, real-time collaboration, and enterprise-grade security. The system must handle complex nested workflows while maintaining performance and usability.",
+      "overview": "Orrery SaaS platform requires a modern, scalable architecture supporting 3D visualization, real-time collaboration, and enterprise-grade security. The system must handle complex nested workflows while maintaining performance and usability.",
       "key_technical_needs": [
         "High-performance 3D rendering with React Three Fiber",
         "Real-time data synchronization and persistence",

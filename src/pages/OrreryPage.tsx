@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Zap, Globe, Shield, Users, CheckCircle, Star, Play, Download, Code, Bot, Workflow, Layers, Check, X, ChevronDown, ChevronUp, Building } from 'lucide-react';
+import { ArrowRight, Zap, Globe, Shield, Users, CheckCircle, Star, Play, Download, Code, Bot, Workflow, Layers, Check, X, ChevronDown, ChevronUp, Building, Activity, AlertTriangle, BarChart3, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,40 +10,40 @@ import { productStatsService, ProductStats } from '@/lib/productStatsService';
 
 const features = [
   {
-    icon: Zap,
-    title: 'Intuitive 3D Interface',
-    description: 'Create complex AI workflows with our revolutionary 3D visual builder. Drag, drop, and connect nodes effortlessly.',
-    benefits: ['No coding required', 'Visual workflow design', 'Real-time preview']
+    icon: Activity,
+    title: 'Real-time Execution Monitoring',
+    description: 'Monitor LangGraph workflows as they execute with millisecond precision. Track node performance and execution paths in real-time.',
+    benefits: ['Live execution tracking', 'Node performance metrics', 'Execution path visualization']
   },
   {
-    icon: Globe,
-    title: 'LangGraph Integration',
-    description: 'Native support for LangGraph with advanced agent orchestration capabilities and seamless deployment.',
-    benefits: ['Native LangGraph support', 'Advanced orchestration', 'Seamless deployment']
+    icon: AlertTriangle,
+    title: 'Smart Alerting System',
+    description: 'Get instant notifications when workflows encounter errors, performance bottlenecks, or unexpected behaviors.',
+    benefits: ['Custom alert thresholds', 'Multi-channel notifications', 'Root cause analysis']
   },
   {
-    icon: Shield,
-    title: 'Enterprise Ready',
-    description: 'Built for scale with enterprise-grade security, monitoring, administration, and compliance features.',
-    benefits: ['Enterprise security', 'Advanced monitoring', 'Compliance ready']
+    icon: BarChart3,
+    title: 'Advanced Analytics',
+    description: 'Deep analytical insights into workflow performance, resource utilization, and optimization opportunities.',
+    benefits: ['Performance trend analysis', 'Resource consumption reports', 'Optimization recommendations']
   },
   {
-    icon: Users,
-    title: 'Team Collaboration',
-    description: 'Work together seamlessly with real-time collaboration, sharing features, and version control.',
-    benefits: ['Real-time collaboration', 'Version control', 'Team sharing']
+    icon: Clock,
+    title: 'Historical Data Retention',
+    description: 'Access execution history with detailed metrics for compliance, debugging, and performance analysis.',
+    benefits: ['Long-term data storage', 'Historical trend analysis', 'Audit-ready reports']
   }
 ];
 
 const integrations = [
-  { name: 'OpenAI GPT-4', logo: '🤖', category: 'LLM' },
-  { name: 'Hugging Face', logo: '🤗', category: 'Models' },
-  { name: 'AWS SageMaker', logo: '☁️', category: 'Cloud' },
-  { name: 'Google AI', logo: '🧠', category: 'AI Services' },
-  { name: 'Anthropic', logo: '🔬', category: 'LLM' },
-  { name: 'Pinecone', logo: '🌲', category: 'Vector DB' },
-  { name: 'LangChain', logo: '⛓️', category: 'Framework' },
-  { name: 'Zapier', logo: '⚡', category: 'Automation' }
+  { name: 'LangGraph', logo: '⛓️', category: 'Core Framework' },
+  // { name: 'OpenAI GPT-4', logo: '🤖', category: 'LLM' },
+  // { name: 'Hugging Face', logo: '🤗', category: 'Models' },
+  // { name: 'AWS CloudWatch', logo: '☁️', category: 'Monitoring' },
+  // { name: 'Slack', logo: '💬', category: 'Notifications' },
+  // { name: 'PagerDuty', logo: '🚨', category: 'Alerting' },
+  // { name: 'Grafana', logo: '📊', category: 'Analytics' },
+  // { name: 'Datadog', logo: '🐕', category: 'Monitoring' }
 ];
 
 const testimonials = [
@@ -51,7 +51,7 @@ const testimonials = [
     name: 'Sarah Chen',
     role: 'AI Engineer at TechCorp',
     avatar: '👩‍💻',
-    content: 'UGraph completely transformed how we build AI workflows. The visual interface makes complex orchestration intuitive.',
+    content: 'Orrery gives us complete visibility into our LangGraph workflows. The real-time alerts have prevented several production incidents.',
     rating: 5,
     company: 'TechCorp'
   },
@@ -59,7 +59,7 @@ const testimonials = [
     name: 'Michael Rodriguez',
     role: 'CTO at StartupXYZ',
     avatar: '👨‍💼',
-    content: 'We reduced our AI development time by 60% using UGraph. The 3D visualization helps our team collaborate effectively.',
+    content: 'The analytics dashboard helped us optimize our workflows and reduce execution time by 40%. Essential for any serious LangGraph implementation.',
     rating: 5,
     company: 'StartupXYZ'
   },
@@ -67,7 +67,7 @@ const testimonials = [
     name: 'Emma Thompson',
     role: 'Data Scientist at Enterprise Inc',
     avatar: '👩‍🔬',
-    content: 'The best AI workflow platform I\'ve used. The integration capabilities are outstanding.',
+    content: 'Finally a monitoring solution built specifically for LangGraph! The historical data analysis has been invaluable for our compliance requirements.',
     rating: 5,
     company: 'Enterprise Inc'
   }
@@ -75,59 +75,58 @@ const testimonials = [
 
 const pricingPlans = [
   {
-    name: 'Free',
+    name: 'Starter',
     price: '$0',
     period: 'forever',
-    description: 'Perfect for individuals getting started with AI workflows',
+    description: 'Perfect for individuals monitoring basic LangGraph workflows',
     icon: Users,
     popular: false,
     features: [
-      '5 workflows per month',
-      'Basic templates',
+      'Monitor up to 5 workflows',
+      'Basic alerting (email only)',
+      '7-day data retention',
+      'Standard analytics dashboard',
       'Community support',
-      'Standard integrations',
-      'Basic analytics',
     ],
     limitations: [
-      'Limited to 100 nodes',
-      'No custom connectors',
-      'No priority support',
+      'Limited historical data',
+      'No custom alert rules',
+      'No API access',
     ]
   },
   {
     name: 'Pro',
-    price: '$29',
+    price: '$49',
     period: 'per month',
-    description: 'For professionals and small teams building complex workflows',
+    description: 'For teams building and monitoring production LangGraph workflows',
     icon: Zap,
     popular: true,
     features: [
-      'Unlimited workflows',
-      'Advanced templates',
+      'Unlimited workflow monitoring',
+      'Advanced alerting (Slack, SMS, Webhooks)',
+      '90-day data retention',
+      'Custom analytics dashboards',
       'Priority support',
-      'Custom integrations',
-      'Advanced analytics',
-      'Team collaboration',
-      'Version control',
       'API access',
+      'Performance benchmarking',
     ],
     limitations: []
   },
   {
     name: 'Enterprise',
-    price: '$99',
+    price: '$149',
     period: 'per month',
-    description: 'For large teams with advanced requirements and compliance needs',
+    description: 'For organizations with complex monitoring requirements and compliance needs',
     icon: Building,
     popular: false,
     features: [
       'Everything in Pro',
-      'Unlimited team members',
-      'Advanced security (SSO)',
-      'Custom deployment',
+      'Unlimited data retention',
+      'Custom alert rules',
+      'Advanced compliance reporting',
       'Dedicated support',
       'SLA guarantees',
-      'Advanced compliance',
+      'Single sign-on (SSO)',
       'Custom training',
     ],
     limitations: []
@@ -136,28 +135,28 @@ const pricingPlans = [
 
 const faqs = [
   {
-    question: 'How does the visual workflow builder work?',
-    answer: 'Our intuitive drag-and-drop interface allows you to create complex AI workflows by connecting nodes visually. Each node represents a specific AI operation or data transformation, and you can easily configure parameters and see real-time execution.'
+    question: 'What LangGraph versions are supported?',
+    answer: 'Orrery supports all current versions of LangGraph including 0.1.x and 0.2.x. We regularly update our monitoring agents to maintain compatibility with new releases.'
   },
   {
-    question: 'Can I integrate with existing AI models and services?',
-    answer: 'Yes! UGraph supports integration with popular AI services like OpenAI, Hugging Face, AWS SageMaker, and many others. You can also deploy custom models and create custom connectors for your specific needs.'
+    question: 'How does the alerting system work?',
+    answer: 'Our smart alerting system monitors key performance metrics and execution patterns. You can configure custom thresholds for response times, error rates, and resource usage. Alerts can be sent via email, Slack, SMS, or webhook integrations.'
   },
   {
-    question: 'What kind of support do you provide?',
-    answer: 'We offer different levels of support based on your plan. Free users get community support, Pro users get priority email support, and Enterprise customers get dedicated support with SLA guarantees and phone support.'
+    question: 'Can I export monitoring data?',
+    answer: 'Yes! Pro and Enterprise plans include API access to all monitoring data. You can export metrics, execution logs, and analytics reports in multiple formats including CSV, JSON, and PDF.'
   },
   {
-    question: 'Is there a limit on workflow complexity?',
-    answer: 'Free plans are limited to 100 nodes per workflow. Pro and Enterprise plans have no limits on workflow complexity, allowing you to build sophisticated AI systems with thousands of interconnected components.'
+    question: 'What kind of analytics does Orrery provide?',
+    answer: 'Our analytics platform provides execution performance trends, resource utilization patterns, error analysis, optimization recommendations, and compliance reporting. All dashboards are customizable and can be shared with team members.'
   },
   {
-    question: 'How secure is my data?',
-    answer: 'We take security seriously. All data is encrypted in transit and at rest. Enterprise plans include advanced security features like SSO, audit logs, and compliance certifications (SOC 2, GDPR, HIPAA).'
+    question: 'How is data security handled?',
+    answer: 'All monitoring data is encrypted in transit and at rest. Enterprise plans include advanced security features like SSO, audit logs, and compliance certifications (SOC 2, GDPR, HIPAA). We never access your workflow code or data.'
   }
 ];
 
-export default function UGraphPage() {
+export default function OrreryPage() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [stats, setStats] = useState<ProductStats>({ activeUsers: 0, workflowsCreated: 0, uptime: '99.9%' });
@@ -165,10 +164,10 @@ export default function UGraphPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const productStats = await productStatsService.getUGraphStats();
+        const productStats = await productStatsService.getOrreryStats();
         setStats(productStats);
       } catch (error) {
-        console.error('Failed to fetch UGraph stats:', error);
+        console.error('Failed to fetch Orrery stats:', error);
       }
     };
     fetchStats();
@@ -184,6 +183,7 @@ export default function UGraphPage() {
       pricingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Header />
@@ -196,7 +196,7 @@ export default function UGraphPage() {
             <span>/</span>
             <Link to="/products" className="hover:text-primary transition-colors">Products</Link>
             <span>/</span>
-            <span className="text-foreground">UGraph</span>
+            <span className="text-foreground">Orrery</span>
           </nav>
         </div>
       </section>
@@ -218,46 +218,46 @@ export default function UGraphPage() {
                   transition={{ delay: 0.2 }}
                   className="inline-block px-6 py-3 bg-primary/10 text-primary rounded-full text-lg font-medium"
                 >
-                  🎯 The Future of AI Workflow Creation
+                  🔍 Real-time LangGraph Monitoring
                 </motion.div>
                 
                 <h1 className="text-5xl lg:text-6xl font-bold tracking-tight">
-                  Build AI Agents
+                  Monitor Your AI Agents
                   <span className="block bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                    Visually
+                    In Real-time
                   </span>
                 </h1>
                 
                 <p className="text-xl text-muted-foreground max-w-2xl">
-                  Create sophisticated LangGraph workflows with our intuitive 3D visual builder. 
-                  No coding experience required - just drag, drop, and deploy intelligent AI systems.
+                  Gain complete visibility into your LangGraph workflows with real-time monitoring, 
+                  intelligent alerts, and deep analytical insights. Never fly blind with your AI systems.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="text-lg px-8" asChild>
                   <Link to="/auth/signup">
-                    Get Started Free
+                    Start Monitoring Free
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="text-lg px-8" onClick={scrollToPricing}>
-                  View Pricing
+                  View Plans
                 </Button>
               </div>
 
               <div className="flex items-center gap-8 pt-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary">{stats.activeUsers.toLocaleString()}+</div>
-                  <div className="text-sm text-muted-foreground">Active Users</div>
+                  <div className="text-sm text-muted-foreground">Active Teams</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary">{stats.workflowsCreated.toLocaleString()}+</div>
-                  <div className="text-sm text-muted-foreground">Workflows Created</div>
+                  <div className="text-sm text-muted-foreground">Workflows Monitored</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-primary">{stats.uptime}</div>
-                  <div className="text-sm text-muted-foreground">Uptime</div>
+                  <div className="text-sm text-muted-foreground">Platform Uptime</div>
                 </div>
               </div>
             </motion.div>
@@ -270,12 +270,12 @@ export default function UGraphPage() {
             >
               <div className="h-full flex items-center justify-center">
                 <div className="text-center space-y-4">
-                  <div className="text-6xl mb-4">🎯</div>
+                  <div className="text-6xl mb-4">📊</div>
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                    AI Workflow Visualization
+                    Live Workflow Dashboard
                   </h3>
                   <p className="text-muted-foreground max-w-md">
-                    Experience the power of visual AI workflow creation. Connect nodes, configure agents, and deploy sophisticated AI systems with ease.
+                    Real-time insights into your LangGraph executions with performance metrics, alerts, and optimization recommendations.
                   </p>
                 </div>
               </div>
@@ -295,11 +295,10 @@ export default function UGraphPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold mb-4">
-              Why Choose UGraph?
+              Comprehensive LangGraph Monitoring
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Experience the next generation of AI workflow creation with our powerful, 
-              yet intuitive platform designed for everyone.
+              Everything you need to ensure your LangGraph workflows perform reliably in production.
             </p>
           </motion.div>
 
@@ -350,10 +349,10 @@ export default function UGraphPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold mb-4">
-              Powerful Integrations
+              Seamless Integrations
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Connect with your favorite AI services and tools. UGraph integrates seamlessly with leading platforms.
+              Connect Orrery with your existing tools and infrastructure for a complete monitoring ecosystem.
             </p>
           </motion.div>
 
@@ -387,9 +386,9 @@ export default function UGraphPage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold mb-4">What Our Users Say</h2>
+            <h2 className="text-4xl font-bold mb-4">Trusted by AI Teams</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of developers and teams who trust UGraph for their AI workflows.
+              Join industry leaders who rely on Orrery for LangGraph monitoring.
             </p>
           </motion.div>
 
@@ -439,13 +438,13 @@ export default function UGraphPage() {
             className="text-center mb-16"
           >
             <Badge className="mb-6 bg-primary/10 text-primary border-primary/20">
-              💎 Simple, Transparent Pricing
+              💎 Transparent Monitoring Plans
             </Badge>
             <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-              Choose Your Plan
+              Choose Your Monitoring Plan
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              From individuals to enterprise teams, we have a plan that scales with your AI workflow needs.
+              From individual developers to enterprise teams, we have a plan that scales with your LangGraph monitoring needs.
             </p>
             
             {/* Billing Toggle */}
@@ -564,7 +563,7 @@ export default function UGraphPage() {
             <div className="text-center mb-12">
               <h3 className="text-3xl font-bold mb-4">Frequently Asked Questions</h3>
               <p className="text-lg text-muted-foreground">
-                Everything you need to know about UGraph and our pricing.
+                Everything you need to know about Orrery monitoring.
               </p>
             </div>
 
@@ -621,20 +620,20 @@ export default function UGraphPage() {
             className="space-y-6"
           >
             <h2 className="text-4xl font-bold text-white">
-              Ready to Transform Your AI Workflow?
+              Ready to Monitor Your LangGraph Workflows?
             </h2>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto">
-              Join thousands of developers and teams who are already building the future with UGraph.
+              Join teams who ensure their AI agents perform reliably with real-time insights.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" variant="secondary" className="text-lg px-8" asChild>
                 <Link to="/auth/signup">
-                  Start Free Trial
+                  Start Free Monitoring
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="text-lg px-8 bg-transparent border-white text-white hover:bg-white hover:text-primary" onClick={scrollToPricing}>
-                View Pricing
+                View Plans
               </Button>
             </div>
           </motion.div>
@@ -654,7 +653,7 @@ export default function UGraphPage() {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/products/ugraph" className="hover:text-white transition-colors">UGraph</Link></li>
+                <li><Link to="/products/orrery" className="hover:text-white transition-colors">Orrery</Link></li>
                 <li><button onClick={scrollToPricing} className="hover:text-white transition-colors">Pricing</button></li>
               </ul>
             </div>

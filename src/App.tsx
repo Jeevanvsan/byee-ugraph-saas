@@ -8,13 +8,13 @@ import { useAuthStore } from '@/stores/authStore';
 
 // Pages
 import PricingPage from '@/pages/PricingPage';
-import DashboardPage from '@/pages/DashboardPage';
+import { DashboardRouter } from '@/pages/DashboardRouter';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignupForm } from '@/components/auth/SignupForm';
 import NotFound from '@/pages/NotFound';
 import CompanyHomePage from '@/pages/CompanyHomePage';
 import ProductsPageComponent from '@/pages/ProductsPage';
-import UGraphPageComponent from '@/pages/UGraphPage';
+import OrreryPageComponent from '@/pages/OrreryPage';
 import SubscriptionListPage from '@/pages/SubscriptionPage';
 import { AdminLoginForm } from '@/components/auth/AdminLoginForm';
 import { AdminDashboard } from '@/pages/AdminDashboard';
@@ -81,7 +81,7 @@ const App = () => {
               
               {/* Products Routes */}
               <Route path="/products" element={<ProductsPageComponent />} />
-              <Route path="/products/ugraph" element={<UGraphPageComponent />} />
+              <Route path="/products/orrery" element={<OrreryPageComponent />} />
 
               {/* Auth Routes */}
               <Route 
@@ -106,7 +106,7 @@ const App = () => {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    <DashboardPage />
+                    <DashboardRouter />
                   </ProtectedRoute>
                 }
               />

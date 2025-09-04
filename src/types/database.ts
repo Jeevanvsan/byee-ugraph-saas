@@ -9,6 +9,8 @@ export interface Database {
           last_name: string;
           avatar_url: string | null;
           plan: 'free' | 'pro' | 'enterprise';
+          role: 'user' | 'admin' | 'owner';
+          organization_id: string | null;
           is_verified: boolean;
           created_at: string;
           updated_at: string;
@@ -20,6 +22,8 @@ export interface Database {
           last_name: string;
           avatar_url?: string | null;
           plan?: 'free' | 'pro' | 'enterprise';
+          role?: 'user' | 'admin' | 'owner';
+          organization_id?: string | null;
           is_verified?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -31,6 +35,7 @@ export interface Database {
           last_name?: string;
           avatar_url?: string | null;
           plan?: 'free' | 'pro' | 'enterprise';
+          organization_id?: string | null;
           is_verified?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -44,6 +49,8 @@ export interface Database {
           status: 'active' | 'cancelled' | 'expired' | 'trialing';
           billing_cycle: 'monthly' | 'annual';
           amount: number;
+          user_type: 'individual' | 'organization_member';
+          api_key: string | null;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
           current_period_start: string;
@@ -58,6 +65,8 @@ export interface Database {
           status?: 'active' | 'cancelled' | 'expired' | 'trialing';
           billing_cycle: 'monthly' | 'annual';
           amount: number;
+          user_type?: 'individual' | 'organization_member';
+          api_key?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           current_period_start?: string;
@@ -72,6 +81,8 @@ export interface Database {
           status?: 'active' | 'cancelled' | 'expired' | 'trialing';
           billing_cycle?: 'monthly' | 'annual';
           amount?: number;
+          user_type?: 'individual' | 'organization_member';
+          api_key?: string | null;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
           current_period_start?: string;
@@ -225,6 +236,131 @@ export interface Database {
           status?: 'pending' | 'approved' | 'rejected';
           is_featured?: boolean;
           display_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          description: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string | null;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      organization_memberships: {
+        Row: {
+          id: string;
+          organization_id: string;
+          user_id: string;
+          role: 'owner' | 'admin' | 'member';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          user_id: string;
+          role?: 'owner' | 'admin' | 'member';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          user_id?: string;
+          role?: 'owner' | 'admin' | 'member';
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      website_admins: {
+        Row: {
+          id: string;
+          user_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      organization_subscriptions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          product_slug: string;
+          plan: 'free' | 'pro' | 'enterprise';
+          status: 'active' | 'cancelled' | 'expired' | 'trialing';
+          api_key: string;
+          billing_cycle: 'monthly' | 'annual';
+          amount: number;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          current_period_start: string;
+          current_period_end: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          product_slug: string;
+          plan: 'free' | 'pro' | 'enterprise';
+          status?: 'active' | 'cancelled' | 'expired' | 'trialing';
+          api_key: string;
+          billing_cycle: 'monthly' | 'annual';
+          amount: number;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          current_period_start?: string;
+          current_period_end?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          product_slug?: string;
+          plan?: 'free' | 'pro' | 'enterprise';
+          status?: 'active' | 'cancelled' | 'expired' | 'trialing';
+          api_key?: string;
+          billing_cycle?: 'monthly' | 'annual';
+          amount?: number;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          current_period_start?: string;
+          current_period_end?: string;
           created_at?: string;
           updated_at?: string;
         };

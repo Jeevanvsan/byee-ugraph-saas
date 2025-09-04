@@ -73,14 +73,14 @@ const testimonials = [
     name: 'Sarah Chen',
     role: 'AI Engineer at TechCorp',
     avatar: '👩‍💻',
-    content: 'UGraph completely transformed how we build AI workflows. The visual interface makes complex orchestration intuitive.',
+    content: 'Orrery completely transformed how we build AI workflows. The visual interface makes complex orchestration intuitive.',
     rating: 5
   },
   {
     name: 'Michael Rodriguez',
     role: 'CTO at StartupXYZ',
     avatar: '👨‍💼',
-    content: 'We reduced our AI development time by 60% using UGraph. The 3D visualization helps our team collaborate effectively.',
+    content: 'We reduced our AI development time by 60% using Orrery. The 3D visualization helps our team collaborate effectively.',
     rating: 5
   },
   {
@@ -99,7 +99,7 @@ const faqs = [
   },
   {
     question: 'Can I integrate with existing AI models and services?',
-    answer: 'Yes! UGraph supports integration with popular AI services like OpenAI, Hugging Face, AWS SageMaker, and many others. You can also deploy custom models and create custom connectors for your specific needs.'
+    answer: 'Yes! Orrery supports integration with popular AI services like OpenAI, Hugging Face, AWS SageMaker, and many others. You can also deploy custom models and create custom connectors for your specific needs.'
   },
   {
     question: 'What kind of support do you provide?',
@@ -115,7 +115,7 @@ const faqs = [
   }
 ];
 
-export default function UGraphPricingPage() {
+export default function OrreryPricingPage() {
   const [isAnnual, setIsAnnual] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
 
@@ -135,7 +135,7 @@ export default function UGraphPricingPage() {
             <span>/</span>
             <Link to="/products" className="hover:text-primary transition-colors">Products</Link>
             <span>/</span>
-            <Link to="/products/ugraph" className="hover:text-primary transition-colors">UGraph</Link>
+            <Link to="/products/orrery" className="hover:text-primary transition-colors">Orrery</Link>
             <span>/</span>
             <span className="text-foreground">Pricing</span>
           </nav>
@@ -281,7 +281,7 @@ export default function UGraphPricingPage() {
           >
             <h2 className="text-4xl font-bold mb-4">What Our Customers Say</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of developers and teams who trust UGraph for their AI workflows.
+              Join thousands of developers and teams who trust Orrery for their AI workflows.
             </p>
           </motion.div>
 
@@ -331,7 +331,7 @@ export default function UGraphPricingPage() {
           >
             <h2 className="text-4xl font-bold mb-4">Frequently Asked Questions</h2>
             <p className="text-xl text-muted-foreground">
-              Everything you need to know about UGraph and our pricing.
+              Everything you need to know about Orrery and our pricing.
             </p>
           </motion.div>
 
@@ -390,7 +390,7 @@ export default function UGraphPricingPage() {
               Ready to Transform Your AI Workflows?
             </h2>
             <p className="text-xl text-white/90 mb-8">
-              Join thousands of developers building the future with UGraph. Start your free trial today.
+              Join thousands of developers building the future with Orrery. Start your free trial today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-lg px-8">
@@ -418,8 +418,8 @@ export default function UGraphPricingPage() {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/products/ugraph" className="hover:text-white transition-colors">UGraph</Link></li>
-                <li><Link to="/products/ugraph/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/products/orrery" className="hover:text-white transition-colors">Orrery</Link></li>
+                <li><Link to="/products/orrery/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               </ul>
             </div>
             <div>

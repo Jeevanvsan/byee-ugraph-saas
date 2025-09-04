@@ -1,4 +1,4 @@
-# Byee.in UGraph SaaS Platform - System Design
+# SandVar Orrery SaaS Platform - System Design
 
 ## Implementation Approach
 

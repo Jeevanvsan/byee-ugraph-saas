@@ -48,13 +48,13 @@ export function Header() {
             {/* Light logo - Visible by default */}
             <img
               src="/img/icon.png"
-              alt="Byee.in Light Logo"
+              alt="SandVar Light Logo"
               className="w-14 h-14 dark:hidden"
             />
             {/* Dark logo - Hidden by default, shown in dark mode */}
             <img
               src="/img/icon-dark.png"
-              alt="Byee.in Dark Logo"
+              alt="SandVar Dark Logo"
               className="w-14 h-14 hidden dark:block"
             />
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
@@ -71,10 +71,10 @@ export function Header() {
               Products
             </Link>
             <Link
-              to="/products/ugraph"
+              to="/products/orrery"
               className="text-muted-foreground hover:text-foreground transition-colors"
             >
-              UGraph
+              Orrery
             </Link>
             <Link
               to="/about"
@@ -181,11 +181,11 @@ export function Header() {
                 Products
               </Link>
               <Link
-                to="/products/ugraph"
+                to="/products/orrery"
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
-                UGraph
+                Orrery
               </Link>
               <Link
                 to="/about"
