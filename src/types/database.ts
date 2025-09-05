@@ -12,6 +12,7 @@ export interface Database {
           role: 'user' | 'admin' | 'owner';
           organization_id: string | null;
           is_verified: boolean;
+          is_active: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -25,6 +26,7 @@ export interface Database {
           role?: 'user' | 'admin' | 'owner';
           organization_id?: string | null;
           is_verified?: boolean;
+          is_active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -37,6 +39,7 @@ export interface Database {
           plan?: 'free' | 'pro' | 'enterprise';
           organization_id?: string | null;
           is_verified?: boolean;
+          is_active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -275,6 +278,7 @@ export interface Database {
           organization_id: string;
           user_id: string;
           role: 'owner' | 'admin' | 'member';
+          status: 'active' | 'inactive';
           created_at: string;
           updated_at: string;
         };
@@ -283,6 +287,7 @@ export interface Database {
           organization_id: string;
           user_id: string;
           role?: 'owner' | 'admin' | 'member';
+          status?: 'active' | 'inactive';
           created_at?: string;
           updated_at?: string;
         };
@@ -291,6 +296,7 @@ export interface Database {
           organization_id?: string;
           user_id?: string;
           role?: 'owner' | 'admin' | 'member';
+          status?: 'active' | 'inactive';
           created_at?: string;
           updated_at?: string;
         };
@@ -327,6 +333,8 @@ export interface Database {
           amount: number;
           stripe_customer_id: string | null;
           stripe_subscription_id: string | null;
+          razorpay_payment_id: string | null;
+          razorpay_order_id: string | null;
           current_period_start: string;
           current_period_end: string;
           created_at: string;
@@ -343,6 +351,8 @@ export interface Database {
           amount: number;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          razorpay_payment_id?: string | null;
+          razorpay_order_id?: string | null;
           current_period_start?: string;
           current_period_end?: string;
           created_at?: string;
@@ -359,6 +369,8 @@ export interface Database {
           amount?: number;
           stripe_customer_id?: string | null;
           stripe_subscription_id?: string | null;
+          razorpay_payment_id?: string | null;
+          razorpay_order_id?: string | null;
           current_period_start?: string;
           current_period_end?: string;
           created_at?: string;
@@ -383,6 +395,77 @@ export interface Database {
           sort_order: number;
           created_at: string;
           updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          description: string;
+          icon: string;
+          status: 'hot' | 'latest' | 'coming_soon' | 'beta' | 'active';
+          route: string;
+          gradient_colors?: string;
+          button_text?: string;
+          users_count?: string | null;
+          workflows_count?: string | null;
+          uptime?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          description?: string;
+          icon?: string;
+          status?: 'hot' | 'latest' | 'coming_soon' | 'beta' | 'active';
+          route?: string;
+          gradient_colors?: string;
+          button_text?: string;
+          users_count?: string | null;
+          workflows_count?: string | null;
+          uptime?: string | null;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      api_keys: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          key: string;
+          product_slug: string;
+          subscription_id: string;
+          created_at: string;
+          last_used: string | null;
+          is_active: boolean;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          key: string;
+          product_slug: string;
+          subscription_id: string;
+          created_at?: string;
+          last_used?: string | null;
+          is_active?: boolean;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          key?: string;
+          product_slug?: string;
+          subscription_id?: string;
+          created_at?: string;
+          last_used?: string | null;
+          is_active?: boolean;
         };
         Insert: {
           id?: string;

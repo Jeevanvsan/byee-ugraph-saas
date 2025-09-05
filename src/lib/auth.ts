@@ -14,6 +14,7 @@ export interface AuthUser {
   role: 'user' | 'admin' | 'owner';
   organization_id?: string;
   isVerified: boolean;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +36,7 @@ class AuthService {
 
     const profile = await this.getProfile(data.user.id);
     if (!profile) throw new Error('Profile not found');
+    if (!profile.is_active) throw new Error('Account is inactive. Please contact your administrator.');
 
     return { user: this.transformProfile(profile), session: data.session };
   }
@@ -59,7 +61,8 @@ class AuthService {
         last_name: lastName,
         role: role,
         plan: 'free',
-        is_verified: false
+        is_verified: false,
+        is_active: true
       });
     } catch (profileError) {
       console.log('Profile creation handled by trigger or already exists');
@@ -77,6 +80,7 @@ class AuthService {
       role: role,
       plan: 'free',
       isVerified: false,
+      isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -118,6 +122,7 @@ class AuthService {
       role: profile.role,
       organization_id: profile.organization_id || undefined,
       isVerified: profile.is_verified,
+      isActive: profile.is_active,
       createdAt: profile.created_at,
       updatedAt: profile.updated_at,
     };

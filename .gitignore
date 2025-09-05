@@ -1,4 +1,5 @@
 /.mgx
 /dist
 /node_modules
-.env.local
+/.env.local
+.env

@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiAuthService, OrganizationSubscription } from '@/lib/apiAuthService';
+import { realRazorpayService } from '@/lib/realRazorpayService';
+import { useAuthStore } from '@/stores/authStore';
 import { toast } from '@/hooks/use-toast';
 
 interface OrganizationSubscriptionsProps {
@@ -17,10 +19,12 @@ interface OrganizationSubscriptionsProps {
 }
 
 export function OrganizationSubscriptions({ organizationId, isAdmin }: OrganizationSubscriptionsProps) {
+  const { user } = useAuthStore();
   const [subscriptions, setSubscriptions] = useState<OrganizationSubscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [createSubOpen, setCreateSubOpen] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const [paymentLoading, setPaymentLoading] = useState(false);
   
   const [newSub, setNewSub] = useState({
     productSlug: '',
@@ -49,27 +53,54 @@ export function OrganizationSubscriptions({ organizationId, isAdmin }: Organizat
   };
 
   const handleCreateSubscription = async () => {
+    if (!user || newSub.plan === 'free' || newSub.amount === 0) {
+      // For free plans, create directly without payment
+      try {
+        await apiAuthService.createSubscription(
+          organizationId,
+          newSub.productSlug,
+          newSub.plan,
+          newSub.billingCycle,
+          newSub.amount
+        );
+        setNewSub({ productSlug: '', plan: 'pro', billingCycle: 'monthly', amount: 0 });
+        setCreateSubOpen(false);
+        loadSubscriptions();
+        toast({
+          title: "Success",
+          description: "Subscription created successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to create subscription",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    // For paid plans, use Razorpay
+    setPaymentLoading(true);
     try {
-      await apiAuthService.createSubscription(
-        organizationId,
+      await realRazorpayService.processPayment(
+        newSub.amount,
         newSub.productSlug,
         newSub.plan,
         newSub.billingCycle,
-        newSub.amount
+        { name: user.user_metadata?.full_name || user.email || '', email: user.email || '' },
+        organizationId
       );
       setNewSub({ productSlug: '', plan: 'pro', billingCycle: 'monthly', amount: 0 });
       setCreateSubOpen(false);
-      loadSubscriptions();
-      toast({
-        title: "Success",
-        description: "Subscription created successfully",
-      });
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create subscription",
+        description: error instanceof Error ? error.message : "Payment failed",
         variant: "destructive",
       });
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -187,8 +218,8 @@ export function OrganizationSubscriptions({ organizationId, isAdmin }: Organizat
                     onChange={(e) => setNewSub({ ...newSub, amount: parseFloat(e.target.value) || 0 })}
                   />
                 </div>
-                <Button onClick={handleCreateSubscription} className="w-full">
-                  Create Subscription
+                <Button onClick={handleCreateSubscription} className="w-full" disabled={paymentLoading}>
+                  {paymentLoading ? 'Processing Payment...' : newSub.plan === 'free' || newSub.amount === 0 ? 'Create Subscription' : 'Pay & Subscribe'}
                 </Button>
               </div>
             </DialogContent>

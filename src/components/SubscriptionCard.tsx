@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Zap } from 'lucide-react';
-import { realSubscriptionService } from '@/lib/realSubscriptionService';
+import { realRazorpayService } from '@/lib/realRazorpayService';
 import { useAuthStore } from '@/stores/authStore';
 
 interface SubscriptionCardProps {
@@ -29,24 +29,23 @@ export function SubscriptionCard({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubscribe = async () => {
-    if (!user) return;
+    if (!user || plan === 'free') return;
     
     setIsLoading(true);
     try {
-      await realSubscriptionService.createSubscription({
-        userId: user.id,
-        product: 'ugraph',
+      const planPrices = { free: 0, pro: 29, enterprise: 99 };
+      const amount = billingCycle === 'annual' ? planPrices[plan] * 12 * 0.8 : planPrices[plan];
+      
+      await realRazorpayService.processPayment(
+        amount,
+        'ugraph',
         plan,
-        billingCycle
-      });
-
-      alert(`Successfully subscribed to ${name} plan!`);
-      onSubscribe?.();
+        billingCycle,
+        { name: user.user_metadata?.full_name || user.email || '', email: user.email || '' }
+      );
     } catch (error: any) {
-      console.error('Subscription error:', error);
-      console.error('Error message:', error?.message);
-      console.error('Error details:', error?.details);
-      alert(`Subscription failed: ${error?.message || 'Please try again.'}`);
+      console.error('Payment error:', error);
+      alert(`Payment failed: ${error?.message || 'Please try again.'}`);
     } finally {
       setIsLoading(false);
     }

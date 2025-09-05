@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserSubscriptions } from '@/components/UserSubscriptions';
+import { UnifiedBilling } from '@/components/UnifiedBilling';
 
 export function UserDashboard() {
   return (
@@ -15,7 +15,7 @@ export function UserDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <UserSubscriptions />
+        <UnifiedBilling userType="individual" />
       </div>
     </div>
   );

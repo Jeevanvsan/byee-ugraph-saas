@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreateOrganization } from '@/components/CreateOrganization';
 import { OrganizationInfo } from '@/components/OrganizationInfo';
 import { UserManagement } from '@/components/UserManagement';
-import { ProductSubscriptions } from '@/components/ProductSubscriptions';
+import { UnifiedBilling } from '@/components/UnifiedBilling';
 import { useAuthStore } from '@/stores/authStore';
 
 export function OrgAdminDashboard() {
@@ -92,18 +92,7 @@ export function OrgAdminDashboard() {
           </TabsContent>
 
           <TabsContent value="subscriptions">
-            {hasOrganization ? (
-              <ProductSubscriptions organizationId={user?.organization_id || ''} />
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Subscriptions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Create an organization first to manage subscriptions.</p>
-                </CardContent>
-              </Card>
-            )}
+            <UnifiedBilling userType="organization" />
           </TabsContent>
 
           <TabsContent value="api-keys">

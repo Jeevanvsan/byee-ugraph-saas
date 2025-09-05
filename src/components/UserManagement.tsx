@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Mail, User, UserX } from 'lucide-react';
+import { Plus, Mail, User, UserX, UserCheck } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/stores/authStore';
 
 export function UserManagement({ organizationId }: { organizationId: string }) {
+  const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [addUserOpen, setAddUserOpen] = useState(false);
@@ -27,6 +29,14 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
 
   const loadUsers = async () => {
     try {
+      // Get current user's membership to check role
+      const { data: currentMembership } = await supabase
+        .from('organization_memberships')
+        .select('role')
+        .eq('organization_id', organizationId)
+        .eq('user_id', currentUser?.id)
+        .single();
+
       // Get memberships first
       const { data: memberships, error: memberError } = await supabase
         .from('organization_memberships')
@@ -39,7 +49,7 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
       const userIds = memberships?.map(m => m.user_id) || [];
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select('id, email, first_name, last_name, created_at')
+        .select('id, email, first_name, last_name, is_active, created_at')
         .in('id', userIds);
 
       if (profileError) throw profileError;
@@ -47,7 +57,8 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
       // Combine data
       const usersWithProfiles = memberships?.map(membership => ({
         ...membership,
-        profile: profiles?.find(p => p.id === membership.user_id)
+        profile: profiles?.find(p => p.id === membership.user_id),
+        currentUserRole: currentMembership?.role
       })) || [];
 
       setUsers(usersWithProfiles);
@@ -102,7 +113,8 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
           organization_id: organizationId,
           role: 'user',
           plan: 'free',
-          is_verified: false
+          is_verified: false,
+          is_active: true
         });
 
       if (profileError) throw profileError;
@@ -113,7 +125,8 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
         .insert({
           organization_id: organizationId,
           user_id: authData.user.id,
-          role: 'member'
+          role: 'member',
+          status: 'active'
         });
 
       if (memberError) throw memberError;
@@ -142,12 +155,15 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
     }
   };
 
-  const handleDeactivateUser = async (membershipId: string, userId: string) => {
+  const handleToggleUserStatus = async (membershipId: string, userId: string, currentStatus: string, isProfile: boolean) => {
     try {
-      // Deactivate membership instead of deleting
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      const newProfileStatus = newStatus === 'active';
+      
+      // Update membership status
       const { error: memberError } = await supabase
         .from('organization_memberships')
-        .update({ status: 'inactive' })
+        .update({ status: newStatus })
         .eq('id', membershipId);
 
       if (memberError) throw memberError;
@@ -155,7 +171,7 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
       // Update profile status
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ is_active: false })
+        .update({ is_active: newProfileStatus })
         .eq('id', userId);
 
       if (profileError) {
@@ -165,12 +181,12 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
       loadUsers();
       toast({
         title: "Success",
-        description: "User deactivated",
+        description: `User ${newStatus === 'active' ? 'activated' : 'deactivated'}`,
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to deactivate user",
+        description: `Failed to ${currentStatus === 'active' ? 'deactivate' : 'activate'} user`,
         variant: "destructive",
       });
     }
@@ -244,6 +260,7 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -259,26 +276,53 @@ export function UserManagement({ organizationId }: { organizationId: string }) {
                   </TableCell>
                   <TableCell>{member.profile?.email}</TableCell>
                   <TableCell>
+                    <Badge variant={member.role === 'owner' ? 'default' : 'secondary'}>
+                      {member.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={member.role === 'owner' ? 'default' : 'secondary'}>
-                        {member.role}
+                      <Badge variant={member.status === 'active' && member.profile?.is_active ? 'default' : 'destructive'}>
+                        {member.status === 'active' && member.profile?.is_active ? 'Active' : 'Inactive'}
                       </Badge>
-                      {member.status === 'inactive' && (
-                        <Badge variant="destructive">Inactive</Badge>
-                      )}
                     </div>
                   </TableCell>
                   <TableCell>{new Date(member.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     {member.role !== 'owner' && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDeactivateUser(member.id, member.user_id)}
-                        title="Deactivate user"
-                      >
-                        <UserX className="h-4 w-4" />
-                      </Button>
+                      <div className="flex space-x-2">
+                        {/* Regular users can only deactivate */}
+                        {member.currentUserRole === 'member' && member.status === 'active' && member.profile?.is_active && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleToggleUserStatus(member.id, member.user_id, 'active', true)}
+                            title="Deactivate user"
+                          >
+                            <UserX className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {/* Admins can activate and deactivate */}
+                        {(member.currentUserRole === 'admin' || member.currentUserRole === 'owner') && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleToggleUserStatus(
+                              member.id, 
+                              member.user_id, 
+                              member.status === 'active' && member.profile?.is_active ? 'active' : 'inactive',
+                              true
+                            )}
+                            title={member.status === 'active' && member.profile?.is_active ? 'Deactivate user' : 'Activate user'}
+                          >
+                            {member.status === 'active' && member.profile?.is_active ? (
+                              <UserX className="h-4 w-4" />
+                            ) : (
+                              <UserCheck className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
